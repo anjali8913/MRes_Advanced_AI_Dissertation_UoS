@@ -1,3 +1,25 @@
+"""
+Stage 2 — Hindi ASR and cross-lingual misinterpretation.
+
+Reuses Stage 1's frozen artifacts to audit an English–Hindi pipeline end to end,
+the language-identification routing gate, cross-lingual decoding by a Hindi ASR,
+entropy-based confusion mining, a native-calibrated and null-baselined cross-lingual
+risk score (CLRS), joint embedding geometry and case studies. Locates the accent
+disparity at the router rather than the recogniser.
+
+Input : Stage 1 outputs (embeddings, fitted classifier, scaler) + native Hindi
+        speech (OpenSLR-103 / MUCS) for plausibility calibration.
+Output: figures, cross-lingual results, CLRS, and summary written to the Stage 2
+        output directory.
+
+Run   : python stage2.py          (full pipeline)
+        python stage2.py --live    (record from mic and run end to end)
+
+Author: Anjali Chakraborty (candidate 307998), MRes Advanced AI, University of Sussex.
+Pretrained models and libraries used here are the work of others (see the attribution
+note in README.md), the pipeline design and analysis code are my own.
+"""
+
 import os
 import re
 import sys
