@@ -1,3 +1,23 @@
+"""
+Stage 1 — English accent modelling and error diagnostics.
+
+Characterises the accent signal in frozen wav2vec 2.0 embeddings across American,
+British and Indian English: audio preprocessing, a leakage/confound audit, accent
+classification with statistical testing, a clip-length (truncation) fairness sweep,
+embedding geometry and Whisper WER. Fits and freezes the classifier, scaler and
+train/test split, which Stage 2 reuses.
+
+Input : balanced English accent corpus (AccentDB) + metadata spreadsheet.
+Output: figures, fitted artifacts (RandomForest, scaler, split) and metrics
+        written to the Stage 1 output directory.
+
+
+Author: Anjali Chakraborty (candidate 307998), MRes Advanced AI, University of Sussex.
+Pretrained models and libraries used here are the work of others (reference in attribution
+note in README.md), the pipeline design and analysis code are my own.
+"""
+
+
 import os
 import re
 import sys
