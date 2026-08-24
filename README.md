@@ -41,7 +41,7 @@ Reuses Stage 1's frozen artifacts and audits the routing gate and Hindi recognis
 - **Step 9 – Summary & mitigation** — `step9_summary`
 - **Entry point** — `main`
 
-## `run_all.py`
+## `main_run.py`
 
 The single entry point that runs the whole pipeline. It imports both stages and
 executes them in order (Stage 1, then Stage 2), so Stage 2 picks up the frozen
@@ -61,10 +61,10 @@ Both files must sit in the same folder so imports resolve.
 
 ```bash
 # Full pipeline — generates all results
-python run_all.py
+python main_run.py
 
 # Live demo — records from the mic and runs it through the pipeline
-python run_all.py --live
+python main_run.py --live
 ```
 
 The stage scripts can also be run on their own (`python stage1.py`,
