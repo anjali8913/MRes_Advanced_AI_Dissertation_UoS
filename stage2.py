@@ -17,7 +17,7 @@ Run   : python stage2.py          (full pipeline)
 
 Author: Anjali Chakraborty (candidate 307998), MRes Advanced AI, University of Sussex.
 Pretrained models and libraries used here are the work of others (see the attribution
-note in README.md), the pipeline design and analysis code are my own.
+note in README.md), the pipeline idea, design , steps of code and analysis are my own.
 """
 
 import os
@@ -134,7 +134,7 @@ def save_fig(fig, name):
     p = os.path.join(OUTPUT_DIR, name)
     fig.savefig(p, dpi=150, bbox_inches="tight")
     plt.close(fig)
-    print(f"  ✔  Saved: {p}")
+    print(f"      Saved: {p}")
 
 
 def preprocess_audio(path, target_sr=TARGET_SR, top_db=TRIM_TOP_DB):
@@ -289,7 +289,7 @@ def translate_hi_to_en(text):
                 max_length=128)
         except Exception as e:
             _translator = False
-            print(f"  ⚠  NLLB unavailable ({e}). Glosses disabled.")
+            print(f"     NLLB unavailable ({e}). Glosses disabled.")
     if _translator is False:
         return "(translation unavailable — install sentencepiece & NLLB)"
     try:
@@ -537,10 +537,10 @@ def get_ctc_decoder(processor):
         _ctc_decoder = build_ctcdecoder(
             labels=vocab, kenlm_model_path=KENLM_PATH,
             alpha=KENLM_ALPHA, beta=KENLM_BETA)
-        print(f"  ✔  KenLM shallow-fusion decoder loaded: {KENLM_PATH}")
+        print(f"      KenLM shallow-fusion decoder loaded: {KENLM_PATH}")
         return _ctc_decoder
     except Exception as e:
-        print(f"  ⚠  pyctcdecode/KenLM unavailable ({e}) — greedy decode only.")
+        print(f"     pyctcdecode/KenLM unavailable ({e}) — greedy decode only.")
         _ctc_decoder = False
         return None
 
@@ -607,7 +607,7 @@ def evaluate_hindi_asr(model, processor, device, paths, refs, max_n=500):
     finite = [c for c in all_confs if np.isfinite(c)]
     with open(NATIVE_CONF_PATH, "w") as f:
         json.dump({"confidences": finite}, f)
-    print(f"  ✔  Native-Hindi confidences saved for CLRS calibration "
+    print(f"      Native-Hindi confidences saved for CLRS calibration "
           f"(n={len(finite)})")
 
     # Print 3 sample decodes 
@@ -636,7 +636,7 @@ def step1_hindi_asr():
     if USE_PRETRAINED_ASR:
         model = Wav2Vec2ForCTC.from_pretrained(HINDI_ASR_MODEL).to(infer_device)
         processor = Wav2Vec2Processor.from_pretrained(HINDI_ASR_MODEL)
-        print(f"  ✔  Loaded pretrained Hindi ASR: {HINDI_ASR_MODEL}")
+        print(f"      Loaded pretrained Hindi ASR: {HINDI_ASR_MODEL}")
     else:
         model, processor = _finetune_hindi(
             train_p, train_t, val_p, val_t, infer_device)
@@ -821,7 +821,7 @@ def step2_lang_id_gate(df):
 
     cache_path = os.path.join(OUTPUT_DIR, "lang_id_results.csv")
     if os.path.exists(cache_path):
-        print(f"  ✔  Loading cached results from {cache_path}")
+        print(f"      Loading cached results from {cache_path}")
         res_df = pd.read_csv(cache_path)
         _plot_lang_id(res_df)
         return res_df
@@ -829,7 +829,7 @@ def step2_lang_id_gate(df):
     try:
         lang_clf = _load_lang_id()
     except ImportError:
-        print("  ⚠  speechbrain not installed — skipping lang-ID analysis.")
+        print("     speechbrain not installed — skipping lang-ID analysis.")
         return None
 
     start = time.time()
@@ -855,7 +855,7 @@ def step2_lang_id_gate(df):
             })
         except Exception as e:
             if (idx + 1) % 200 == 0:
-                print(f"  ⚠  Error at {idx}: {e}")
+                print(f"     Error at {idx}: {e}")
         if (idx + 1) % 100 == 0:
             rate = (idx + 1) / (time.time() - start)
             eta = (total - idx - 1) / rate / 60
@@ -894,7 +894,7 @@ def step3_cross_lingual_decode(df, hindi_model, hindi_processor, device,
 
     cache_path = os.path.join(OUTPUT_DIR, "cross_lingual_results.csv")
     if os.path.exists(cache_path):
-        print(f"  ✔  Loading cached results from {cache_path}")
+        print(f"      Loading cached results from {cache_path}")
         return pd.read_csv(cache_path)
 
     start = time.time()
@@ -919,7 +919,7 @@ def step3_cross_lingual_decode(df, hindi_model, hindi_processor, device,
             records.append(record)
         except Exception as e:
             if (idx + 1) % 200 == 0:
-                print(f"  ⚠  Error at {idx}: {e}")
+                print(f"     Error at {idx}: {e}")
         if (idx + 1) % 100 == 0:
             rate = (idx + 1) / (time.time() - start)
             eta = (total - idx - 1) / rate / 60
@@ -931,7 +931,7 @@ def step3_cross_lingual_decode(df, hindi_model, hindi_processor, device,
 
     xling_df = pd.DataFrame(records)
     xling_df.to_csv(cache_path, index=False)
-    print(f"  ✔  Cross-lingual results: {len(xling_df)} utterances")
+    print(f"      Cross-lingual results: {len(xling_df)} utterances")
 
     print(f"\n  {'Accent':12s} | {'Mean conf':>10s} | {'Non-empty HI%':>14s}")
     print("  " + "-" * 44)
@@ -988,7 +988,7 @@ def step4_confusion_mining(xling_df):
             })
     cp_df = pd.DataFrame(rows)
     if cp_df.empty:
-        print("  ⚠  No confusion pairs found.")
+        print("     No confusion pairs found.")
         return cp_df, {}
 
     # [FIX-6] Sensitivity sweep
@@ -1078,7 +1078,7 @@ def _plausibility_threshold():
     # conf threshold = PLAUS_PERCENTILE-th pct of NATIVE Hindi confidences
     
     if not os.path.exists(NATIVE_CONF_PATH):
-        print("  ⚠  Native confidences missing — run Step 1 evaluation first.")
+        print("     Native confidences missing — run Step 1 evaluation first.")
         return None
     with open(NATIVE_CONF_PATH) as f:
         confs = json.load(f)["confidences"]
@@ -1119,7 +1119,7 @@ def step5_risk_scores(xling_df, cp_df, hindi_model, hindi_processor, device):
             "(calibrated, null-baselined, significance-tested)")
 
     if cp_df.empty:
-        print("  ⚠  No confusion pairs — skipping risk scoring.")
+        print("     No confusion pairs — skipping risk scoring.")
         return {}
 
     conf_th = _plausibility_threshold()                            # [FIX-7]
@@ -1279,7 +1279,7 @@ def step6_joint_umap(hindi_test_paths, device):
         except Exception:
             pass
     if not hindi_embs:
-        print("  ⚠  No Hindi embeddings extracted.")
+        print("     No Hindi embeddings extracted.")
         return None
     X_hi = np.array(hindi_embs)
 
@@ -1415,7 +1415,7 @@ def step7_case_studies(xling_df, lang_id_df=None):
     with open(os.path.join(OUTPUT_DIR, "case_studies.json"), "w",
               encoding="utf-8") as f:
         json.dump(case_data, f, indent=2, ensure_ascii=False)
-    print("  ✔  Case studies saved to case_studies.json")
+    print("      Case studies saved to case_studies.json")
     print("  ℹ  PAPER NOTE: present the raw Devanagari alongside the NLLB")
     print("     gloss. If the gloss is broken English, that is evidence the")
     print("     ASR output is not genuine Hindi — report it honestly rather")
@@ -1463,7 +1463,7 @@ def step8_live_demo(hindi_model, hindi_processor, device):
             print("  Set one with: sd.default.device = (<input_idx>, None)")
             return
     except Exception as e:
-        print(f"  ⚠  Could not query audio devices: {e}")
+        print(f"     Could not query audio devices: {e}")
 
     duration = 4.0
     print(f"\n  Recording {duration}s — speak now!")
@@ -1488,10 +1488,10 @@ def step8_live_demo(hindi_model, hindi_processor, device):
 
     y_raw, _ = librosa.effects.trim(y_full, top_db=TRIM_TOP_DB)
     if len(y_raw) < 0.5 * TARGET_SR:
-        print("  ⚠  <0.5s of speech left after silence trimming — speak "
+        print("     <0.5s of speech left after silence trimming — speak "
               "louder/closer to the mic and retry.")
         return
-    print(f"  ✔  Recorded {len(y_raw)/TARGET_SR:.1f}s of speech")
+    print(f"      Recorded {len(y_raw)/TARGET_SR:.1f}s of speech")
 
     # RMS-normalised copy for embedding/ASR, raw copy for lang-ID 
     rms = np.sqrt(np.mean(y_raw ** 2))
@@ -1742,7 +1742,7 @@ def step9_summary(hindi_metrics, risk_out, centroid_sims, mining_out,
     })
     with open(os.path.join(OUTPUT_DIR, "stage2_summary.json"), "w") as f:
         json.dump(summary, f, indent=2, default=str)
-    print(f"\n  ✔  Summary saved to stage2_summary.json")
+    print(f"\n      Summary saved to stage2_summary.json")
 
 
 
@@ -1756,10 +1756,10 @@ def main():
                         help="Record from microphone and run full pipeline")
     args = parser.parse_args()
 
-    print("\n" + "★" * 72)
+    print("\n" + "  *" * 72)
     print("  STAGE 2 (v2) — HINDI ASR & CROSS-LINGUAL MISINTERPRETATION")
     print("  Pretrained Indic ASR | Calibrated CLRS | Null-baselined | Tested")
-    print("★" * 72)
+    print("  *" * 72)
 
     device = get_device()
     print(f"\n  Device: {device}")
@@ -1809,7 +1809,7 @@ def main():
     if test_paths_hi:
         centroid_sims = step6_joint_umap(test_paths_hi, device)
     else:
-        print("\n  ⚠  Skipping joint UMAP — no Hindi test data.")
+        print("\n     Skipping joint UMAP — no Hindi test data.")
 
     # Step 7
     step7_case_studies(xling_df, lang_id_df)
@@ -1818,11 +1818,11 @@ def main():
     step9_summary(hindi_metrics, risk_out, centroid_sims, mining_out,
                   lang_id_df, xling_df)
 
-    print("\n" + "★" * 72)
+    print("\n" + "  *" * 72)
     print(f"  STAGE 2 (v2) COMPLETE — outputs in: {OUTPUT_DIR}")
     for fname in sorted(os.listdir(OUTPUT_DIR)):
         print(f"    {fname}")
-    print("★" * 72 + "\n")
+    print("  *" * 72 + "\n")
 
 
 if __name__ == "__main__":
