@@ -14,7 +14,7 @@ Output: figures, fitted artifacts (RandomForest, scaler, split) and metrics
 
 Author: Anjali Chakraborty (candidate 307998), MRes Advanced AI, University of Sussex.
 Pretrained models and libraries used here are the work of others (reference in attribution
-note in README.md), the pipeline design and analysis code are my own.
+note in README.md), the pipeline idea , design ,steps in code and analysis are my own.
 """
 
 
