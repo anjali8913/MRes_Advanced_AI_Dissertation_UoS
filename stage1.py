@@ -141,7 +141,7 @@ def save_fig(fig, name):
     p = os.path.join(OUTPUT_DIR, name)
     fig.savefig(p, dpi=150, bbox_inches="tight")
     plt.close(fig)
-    print(f"  ✔  Saved: {p}")
+    print(f"      Saved: {p}")
 
 
 def wer_transform():
@@ -173,7 +173,7 @@ def rows_with_ref(df):
     coverage = len(out) / len(df) * 100
     print(f"  transcript_ref coverage: {len(out)}/{len(df)} ({coverage:.1f}%)")
     if coverage < 50:
-        print("  ⚠  Low coverage — WER results may not be representative.")
+        print("      Low coverage — WER results may not be representative.")
     return out
 
 
@@ -289,9 +289,9 @@ def step1_eda(df):
 
     missing = df.isnull().sum()
     if missing.any():
-        print(f"\n  ⚠  Missing values:\n{missing[missing > 0]}")
+        print(f"\n      Missing values:\n{missing[missing > 0]}")
     else:
-        print("  ✔  No missing values in core columns")
+        print("      No missing values in core columns")
 
     missing_audio = [r["path"] for _, r in df.iterrows()
                      if not os.path.exists(str(r["path"]))]
@@ -327,7 +327,7 @@ def step1_eda(df):
     medians = {a: np.median(v) for a, v in all_dur.items() if v}
     print(f"\n  Median durations: { {a: f'{v:.2f}s' for a, v in medians.items()} }")
     if medians and max(medians.values()) - min(medians.values()) > 0.5:
-        print("  ⚠  Duration imbalance > 0.5s — per-clip normalisation applied.")
+        print("  Duration imbalance > 0.5s — per-clip normalisation applied.")
     return all_dur
 
 
@@ -358,15 +358,15 @@ def step2_leakage_audit(df):
         ratio = len(df) / n_spk
         print(f"  Utterances per speaker (mean): {ratio:.1f}")
         if ratio > 5:
-            print("  ⚠  Many utterances per speaker → a naive random split WILL")
+            print("    Many utterances per speaker → a naive random split WILL")
             print("     leak speakers across train/test. Using speaker-disjoint")
             print("     (GroupShuffleSplit) as the primary split.")
         else:
-            print("  ✔  Low utterance-per-speaker ratio; leakage risk modest,")
+            print("    Low utterance-per-speaker ratio; leakage risk modest,")
             print("     but speaker-disjoint split still used as primary.")
     else:
-        print("  ⚠  NO speaker column found in metadata.")
-        print("     → Cannot rule out speaker leakage. This MUST be stated as a")
+        print("    NO speaker column found in metadata.")
+        print("     -> Cannot rule out speaker leakage. This MUST be stated as a")
         print("       limitation in the paper: the 3-way accuracy may partially")
         print("       reflect speaker identity rather than accent.")
 
@@ -386,15 +386,15 @@ def step2_leakage_audit(df):
         audit["source_confounded"] = bool(p < ALPHA)
         print(f"  Chi-squared test: χ²={chi2:.2f}, dof={dof}, p={p:.2e}")
         if p < ALPHA:
-            print("  ⚠  Accent and source are STATISTICALLY DEPENDENT.")
+            print("    Accent and source are STATISTICALLY DEPENDENT.")
             print("     The classifier may be learning recording-channel or")
             print("     corpus artefacts instead of accent. Report this and,")
             print("     if any accent maps 1:1 to a source, treat accuracy")
             print("     claims with caution / run a channel-control experiment.")
         else:
-            print("  ✔  No significant accent×source dependence detected.")
+            print("    No significant accent×source dependence detected.")
     else:
-        print("\n  ℹ  No source/dataset column found. If the corpus was merged")
+        print("\n    No source/dataset column found. If the corpus was merged")
         print("     from multiple Kaggle datasets, ADD a source column and")
         print("     re-run this audit — accent↔source confounding is the most")
         print("     likely explanation for anomalies like American@0.5s=100%.")
@@ -432,14 +432,14 @@ def step3_extract_embeddings(df, processor, model, device):
             labels.append(row["accent"])
             utt_ids.append(row["utt_id"])
         except Exception as e:
-            print(f"  ⚠  Skipping {row['utt_id']}: {e}")
+            print(f"      Skipping {row['utt_id']}: {e}")
         if (idx + 1) % 200 == 0:
             print(f"  Processed {idx + 1}/{len(df)} …")
 
     X = np.array(embeddings)
     y_enc = le.transform(labels)
     np.savez(CACHE_EMBEDDINGS, X=X, y=y_enc, utt_ids=np.array(utt_ids))
-    print(f"  ✔  Embeddings shape: {X.shape}  — cached to {CACHE_EMBEDDINGS}")
+    print(f"    Embeddings shape: {X.shape}  — cached to {CACHE_EMBEDDINGS}")
     return X, y_enc, utt_ids
 
 
@@ -510,7 +510,7 @@ def step4_classify(df, X, y_enc, audit):
 
     print(f"\n  Split strategy: {split_kind}")
     if split_kind == "stratified_random" and not audit.get("has_speaker"):
-        print("  ⚠  No speaker info → results may be inflated by speaker leakage.")
+        print("    No speaker info → results may be inflated by speaker leakage.")
 
     #  mean ± std across seeds
     print(f"\n  Accuracy over {len(SEEDS)} seeds (mean ± std):")
@@ -583,9 +583,9 @@ def step4_classify(df, X, y_enc, audit):
              test_idx=primary["test_idx"])
     joblib.dump(primary["clf"], MODEL_PATH)
     joblib.dump(primary["scaler"], SCALER_PATH)
-    print(f"  ✔  Frozen RF → {MODEL_PATH}")
-    print(f"  ✔  Scaler   → {SCALER_PATH}")
-    print(f"  ✔  Split    → {CACHE_SPLIT}")
+    print(f"      Frozen RF → {MODEL_PATH}")
+    print(f"      Scaler   → {SCALER_PATH}")
+    print(f"      Split    → {CACHE_SPLIT}")
 
     stats_out = {
         "split_strategy": split_kind,
@@ -609,7 +609,7 @@ def step5_length_sensitivity(df, clf, scaler, test_idx, y_enc,
                              processor, model, device, audit):
 
     section("STEP 5 — Length-Sensitivity ( frozen RF, cropped clips)")
-    print("  ℹ  RF and scaler from Step 4 are FROZEN.")
+    print("    RF and scaler from Step 4 are FROZEN.")
 
     le = LabelEncoder()
     le.fit(ACCENTS)
@@ -705,7 +705,7 @@ def step5_length_sensitivity(df, clf, scaler, test_idx, y_enc,
         accs_at = {acc: results[acc][li] for acc in ACCENTS}
         gap = max(accs_at.values()) - min(accs_at.values())
         gaps.append(gap)
-        flag = "⚠ >5pp" if gap > 5 else "✔"
+        flag = "no >5pp" if gap > 5 else " yes "
         print(f"  Gap @ {cl}s: {gap:.1f}pp {flag}")
     full_gap = max(full_acc_per.values()) - min(full_acc_per.values())
     print(f"  Gap @ full: {full_gap:.1f}pp (baseline)")
@@ -720,9 +720,9 @@ def step5_length_sensitivity(df, clf, scaler, test_idx, y_enc,
         ax.scatter([CLIP_LENS[-1] + 0.4], [full_acc_per[acc]],
                    marker="*", color=COLORS[acc], s=180, zorder=5)
     star = mlines.Line2D([], [], marker="*", color="grey", linestyle="None",
-                         markersize=10, label="★ full-clip baseline")
+                         markersize=10, label="* full-clip baseline")
     handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles=handles + [star], labels=labels + ["★ full-clip baseline"],
+    ax.legend(handles=handles + [star], labels=labels + ["* full-clip baseline"],
               fontsize=9, loc="lower right")
     ax.axhline(100/3, color="black", linestyle=":", linewidth=0.8, alpha=0.4)
     ax.set_xlabel("Clip Length (s)")
@@ -789,7 +789,7 @@ def step5_length_sensitivity(df, clf, scaler, test_idx, y_enc,
 
 def step6_umap(X, y_enc):
     section("STEP 6 — UMAP Visualisation")
-    print("  ℹ  UMAP is ILLUSTRATIVE only — quantitative claims should use")
+    print("    UMAP is ILLUSTRATIVE only — quantitative claims should use")
     print("     the 768-d space (e.g. cosine similarities), not 2-D distances.")
 
     reducer = umap.UMAP(n_components=2, random_state=RANDOM_STATE,
@@ -831,12 +831,12 @@ def step7_whisper_decode(df):
             transcripts.append(res["text"].strip())
         except Exception as e:
             transcripts.append("")
-            print(f"  ⚠  {row['utt_id']}: {e}")
+            print(f"      {row['utt_id']}: {e}")
     df = df.copy()
     df["whisper_transcript"] = transcripts
     out = METADATA_FILE.replace(".xlsx", "_redecoded.xlsx")
     df.to_excel(out, index=False)
-    print(f"  ✔  Saved to {out}")
+    print(f"    Saved to {out}")
     return df
 
 
@@ -897,7 +897,7 @@ def step7_compute_wer(df):
         print(f"\n  Best  : {best.capitalize()} ({wer_overall[best]:.2f}%)")
         print(f"  Worst : {worst.capitalize()} ({wer_overall[worst]:.2f}%)")
         print(f"  Gap   : {gap:.2f}pp "
-              f"{'⚠ >5pp' if gap > 5 else '✔ <5pp'}")
+              f"{'no >5pp' if gap > 5 else 'yes <5pp'}")
 
     # Top-5 worst utterances per accent (unchanged, useful for error analysis)
     print("\n  Top-5 highest-WER utterances per accent:")
@@ -1004,7 +1004,7 @@ def step8_anomaly(df, audit):
             if stats[acc].get("source"):
                 print(f"    {acc.capitalize()}: "
                       f"{dict(Counter(stats[acc]['source']))}")
-        print("  → If one accent is dominated by a single source with distinct")
+        print("  -> If one accent is dominated by a single source with distinct")
         print("    recording characteristics, treat short-clip results for that")
         print("    accent as potentially confounded.")
 
@@ -1044,7 +1044,7 @@ def step9_vocab_leakage(df):
         print("  Using GROUND-TRUTH transcripts (transcript_ref).")
     else:
         text_col = "whisper_transcript"
-        print("  ⚠  transcript_ref unavailable/sparse — falling back to Whisper")
+        print("    transcript_ref unavailable/sparse — falling back to Whisper")
         print("     transcripts. CAVEAT for the paper: Whisper output already")
         print("     reflects ASR accent bias, so lexical 'leakage' measured this")
         print("     way conflates corpus vocabulary with recognition artefacts.")
@@ -1077,11 +1077,11 @@ def step9_vocab_leakage(df):
         in_grp = matrix[probe][probe]
         out_max = max(matrix[probe][a] for a in ACCENTS if a != probe)
         if in_grp > out_max:
-            print(f"  ⚠  {probe.capitalize()}: in-group lexical signal present "
+            print(f"    {probe.capitalize()}: in-group lexical signal present "
                   f"({in_grp*100:.2f}% > {out_max*100:.2f}%) — accent labels")
             print(f"     partially recoverable from WORDS alone; note as confound.")
         else:
-            print(f"  ✔  {probe.capitalize()}: no in-group lexical advantage "
+            print(f"    {probe.capitalize()}: no in-group lexical advantage "
                   f"({in_grp*100:.2f}% ≤ {out_max*100:.2f}%)")
 
     mat_df = pd.DataFrame(matrix).T[ACCENTS]
@@ -1192,22 +1192,22 @@ def live_record_and_classify(processor, model, device, duration=4.0):
     try:
         import sounddevice as sd
     except ImportError:
-        print("  ✘  Install sounddevice:  pip install sounddevice")
+        print("     Install sounddevice:  pip install sounddevice")
         return
 
     if not (os.path.exists(MODEL_PATH) and os.path.exists(SCALER_PATH)):
-        print("  ✘  Frozen model not found. Run the full pipeline first.")
+        print("     Frozen model not found. Run the full pipeline first.")
         return
     clf = joblib.load(MODEL_PATH)
     scaler = joblib.load(SCALER_PATH)
-    print(f"  ✔  Loaded frozen RF + scaler from {OUTPUT_DIR}")
+    print(f"      Loaded frozen RF + scaler from {OUTPUT_DIR}")
 
     print(f"  Recording {duration}s … speak now!")
     audio = sd.rec(int(duration * TARGET_SR), samplerate=TARGET_SR,
                    channels=1, dtype="float32")
     sd.wait()
     y = audio.flatten()
-    print(f"  ✔  Recorded {len(y) / TARGET_SR:.1f}s")
+    print(f"      Recorded {len(y) / TARGET_SR:.1f}s")
 
     y, _ = librosa.effects.trim(y, top_db=TRIM_TOP_DB)
     rms = np.sqrt(np.mean(y ** 2))
@@ -1273,10 +1273,10 @@ def main():
                         help="Record from microphone and classify accent")
     args = parser.parse_args()
 
-    print("\n" + "★" * 72)
+    print("\n" + "*" * 72)
     print("  STAGE 1 (v2) — ENGLISH ACCENT MODELLING & ERROR DIAGNOSTICS")
     print("  Multi-seed | Leakage-audited | Significance-tested")
-    print("★" * 72)
+    print("*" * 72)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     processor = Wav2Vec2Processor.from_pretrained(WAV2VEC_MODEL)
@@ -1335,11 +1335,11 @@ def main():
     with open(os.path.join(OUTPUT_DIR, "stage1_summary.json"), "w") as f:
         json.dump(summary, f, indent=2, default=str)
 
-    print("\n" + "★" * 72)
+    print("\n" + "*" * 72)
     print(f"  STAGE 1 (v2) COMPLETE — outputs in: {OUTPUT_DIR}")
     for fname in sorted(os.listdir(OUTPUT_DIR)):
         print(f"    {fname}")
-    print("★" * 72 + "\n")
+    print("*" * 72 + "\n")
 
 
 if __name__ == "__main__":
