@@ -78,21 +78,11 @@ python stage2_transliteration_breakdown.py
 
 ## Code attribution
 
-The pipeline design, experimental methodology and all analysis code in this
-repository are my own work. This includes the two-stage pipeline, the
-leakage/confound audit, the accent-classification and truncation-fairness analyses,
-the blank-masked CTC confidence, the entropy-based confusion mining, the
-native-calibrated and null-baselined cross-lingual risk score (CLRS), the
-routing-rule comparison and the transliteration-vs-drift breakdown.
+The pipeline design, experimental methodology and all analysis code in this repository are my own work. This includes the two-stage pipeline, the
+leakage/confound audit, the accent-classification and truncation-fairness analyses, the blank-masked CTC confidence, the entropy-based confusion mining, the native-calibrated and null-baselined cross-lingual risk score (CLRS), the routing-rule comparison and the transliteration-vs-drift breakdown.
 
-No algorithmic code was copied from another person's codebase. The pretrained models
-and third-party libraries used as components — wav2vec 2.0, Whisper, the VoxLingua107
-language-ID model, AI4Bharat indicwav2vec-hindi and NLLB, together with PyTorch,
-Hugging Face Transformers, scikit-learn, librosa, jiwer, umap-learn, SciPy, NumPy,
-pandas, Matplotlib, seaborn and joblib — are the work of their respective authors and
-are imported . Full details and licences are listed in the
-dissertation appendices (Software Used, Pretrained Models).
+No algorithmic code was copied from another person's codebase. The pretrained models and third-party libraries used as components — wav2vec 2.0, Whisper, the VoxLingua107 language-ID model, AI4Bharat indicwav2vec-hindi and NLLB, together with PyTorch,
+Hugging Face Transformers, scikit-learn, librosa, jiwer, umap-learn, SciPy, NumPy, pandas, Matplotlib, seaborn and joblib — are the work of their respective authors and are imported . Full details and licences are listed in the dissertation appendices (Software Used, Pretrained Models).
 
-Standard formulas (WER, cosine similarity, Shannon entropy, RMS energy) are
-established methods, their application to router-level accent fairness is the
-contribution of this work.
+Standard formulas (WER, cosine similarity, Shannon entropy, RMS energy) are established methods, their application to router-level accent fairness is the contribution of this work. Claude code was used as a development assistant mainly for optimisation and debugging.
+
